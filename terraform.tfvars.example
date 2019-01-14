@@ -1,0 +1,17 @@
+cluster_name = "default"
+
+google_project_id = "default-0"
+
+initial_node_count = 1
+
+kubernetes_version = "1.11.5-gke.5"
+
+machine_type = "n1-standard-1"
+
+max_node_count = 50
+
+preemptible = false
+
+region = "us-central-1"
+
+zones = ["us-central1-a", "us-central1-b"]

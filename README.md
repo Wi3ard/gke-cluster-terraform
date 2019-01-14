@@ -18,6 +18,7 @@ Terraform configuration for deploying a Kubernetes cluster in the [Google Kubern
 ```shell
 gcloud auth login
 gcloud config set account $ACCOUNT
+
 gcloud projects create $PROJECT_ID [--name=$NAME] [--organization=$ORGANIZATION_ID]
 gcloud alpha billing accounts list
 gcloud alpha billing projects link $PROJECT_ID --billing-account $BILLING_ACCOUNT_ID
@@ -25,11 +26,22 @@ gcloud config set project $PROJECT_ID
 gcloud services enable compute.googleapis.com
 gcloud services enable container.googleapis.com
 gcloud services enable storage-component.googleapis.com
+
 gcloud iam service-accounts create terraform-sa --display-name "Terraform Service Account"
 gcloud projects add-iam-policy-binding $PROJECT_ID --member serviceAccount:terraform-sa@$PROJECT_ID.iam.gserviceaccount.com --role roles/editor
 gcloud iam service-accounts keys create ~/key.json --iam-account terraform-sa@$PROJECT_ID.iam.gserviceaccount.com
+
 gsutil mb -l us-central1 gs://terraform-state-storage/
+
 terraform init -backend-config "bucket=terraform-state-storage" -backend-config "prefix=k8s" -backend-config "region=us-central1"
+terraform apply
+
+gcloud container clusters get-credentials $CLUSTER_NAME
+
+helm init
+kubectl create serviceaccount --namespace kube-system tiller
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+kubectl patch deploy --namespace kube-system tiller-deploy -p "{\"spec\":{\"template\":{\"spec\":{\"serviceAccount\":\"tiller\"}}}}"
 ```
 
 ## Before you begin

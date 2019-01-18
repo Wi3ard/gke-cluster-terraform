@@ -14,10 +14,4 @@ preemptible = false
 
 region = "us-central-1"
 
-subnet_cluster_cidr_range = "192.168.0.0/16"
-
-subnet_pod_cidr_range = "10.4.0.0/14"
-
-subnet_services_cidr_range = "10.0.32.0/20"
-
 zones = ["us-central1-a", "us-central1-b"]

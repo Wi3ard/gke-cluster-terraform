@@ -1,6 +1,7 @@
 # Kubernetes Cluster in Google Kubernetes Engine (GKE)
 
 - [Kubernetes Cluster in Google Kubernetes Engine (GKE)](#kubernetes-cluster-in-google-kubernetes-engine-gke)
+  - [Features](#features)
   - [TL;TR](#tltr)
   - [Before you begin](#before-you-begin)
     - [GCE configuration](#gce-configuration)
@@ -12,6 +13,11 @@
     - [Helm installation](#helm-installation)
 
 Terraform configuration for deploying a Kubernetes cluster in the [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine/) in the Google Cloud Platform (GCP).
+
+## Features
+
+- [X] [Private cluster](https://cloud.google.com/kubernetes-engine/docs/how-to/private-clusters) on GKE.
+- [X] Ability to use [preemptible VM instances](https://cloud.google.com/compute/docs/instances/preemptible) for cluster nodes. Note that you need to have at least 3 nodes (throughout all zones) to minimize cluster downtime.
 
 ## TL;TR
 
@@ -33,7 +39,7 @@ gcloud iam service-accounts keys create ~/key.json --iam-account terraform-sa@$P
 
 gsutil mb -l us-central1 gs://terraform-state-storage/
 
-terraform init -backend-config "bucket=terraform-state-storage" -backend-config "prefix=k8s" -backend-config "region=us-central1"
+terraform init -backend-config "bucket=terraform-state-storage" -backend-config "prefix=cluster/example" -backend-config "region=us-central1"
 terraform apply
 
 gcloud container clusters get-credentials $CLUSTER_NAME
@@ -161,10 +167,11 @@ gsutil mb -l $REGION gs://$BUCKET_NAME/
 Copy [terraform.tfvars.example](terraform.tfvars.example) file to `terraform.tfvars` and set input variables values as per your needs. Then initialize Terraform with `init` command:
 
 ```shell
-terraform init -backend-config "bucket=$BUCKET_NAME" -backend-config "prefix=k8s" -backend-config "region=$REGION"
+terraform init -backend-config "bucket=$BUCKET_NAME" -backend-config "prefix=cluster/$CLUSTER_NAME" -backend-config "region=$REGION"
 ```
 
 - `$REGION` should be replaced with a region name.
+- `$CLUSTER_NAME` should be replaced with the name of a cluster.
 - `$BUCKET_NAME` should be replaced with a GCS Terraform state storage bucket name.
 
 ## Apply Terraform plan

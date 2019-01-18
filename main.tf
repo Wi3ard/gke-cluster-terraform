@@ -48,24 +48,6 @@ variable "region" {
   type        = "string"
 }
 
-variable "subnet_cluster_cidr_range" {
-  description = "Subnet CIDR range for cluster nodes"
-  default     = "192.168.0.0/16"
-  type        = "string"
-}
-
-variable "subnet_pod_cidr_range" {
-  description = "Subnet CIDR range for pods"
-  default     = "10.4.0.0/14"
-  type        = "string"
-}
-
-variable "subnet_services_cidr_range" {
-  description = "Subnet CIDR range for pods"
-  default     = "10.0.32.0/20"
-  type        = "string"
-}
-
 variable "zones" {
   description = "Zones to create a cluster in"
   default     = ["us-central1-a", "us-central1-b"]
@@ -95,37 +77,11 @@ terraform {
  * Terraform resources.
  */
 
-resource "google_compute_network" "default" {
-  name                    = "${var.cluster_name}-net"
-  auto_create_subnetworks = "true"
-}
-
-resource "google_compute_subnetwork" "default" {
-  name                     = "${var.cluster_name}-subnet"
-  ip_cidr_range            = "${var.subnet_cluster_cidr_range}"
-  region                   = "${var.region}"
-  network                  = "${google_compute_network.default.self_link}"
-  private_ip_google_access = "true"
-
-  secondary_ip_range {
-    range_name    = "${var.cluster_name}-secondary-pod-range"
-    ip_cidr_range = "${var.subnet_pod_cidr_range}"
-  }
-
-  secondary_ip_range {
-    range_name    = "${var.cluster_name}-secondary-services-range"
-    ip_cidr_range = "${var.subnet_services_cidr_range}"
-  }
-}
-
 # GKE cluster.
 resource "google_container_cluster" "default" {
   name             = "${var.cluster_name}"
   zone             = "${var.zones[0]}"
   additional_zones = "${slice(var.zones,1,length(var.zones))}"
-
-  network    = "${google_compute_network.default.name}"
-  subnetwork = "${google_compute_subnetwork.default.name}"
 
   initial_node_count       = 1
   logging_service          = "logging.googleapis.com"
@@ -151,28 +107,8 @@ resource "google_container_cluster" "default" {
     }
   }
 
-  ip_allocation_policy {
-    cluster_secondary_range_name  = "${google_compute_subnetwork.default.secondary_ip_range.0.range_name}"
-    services_secondary_range_name = "${google_compute_subnetwork.default.secondary_ip_range.1.range_name}"
-  }
-
   lifecycle {
     ignore_changes = ["node_count"]
-  }
-
-  master_authorized_networks_config {
-    cidr_blocks = [
-      {
-        cidr_block   = "0.0.0.0/0"
-        display_name = "anywhere"
-      },
-    ]
-  }
-
-  private_cluster_config {
-    enable_private_endpoint = "false"
-    enable_private_nodes    = "true"
-    master_ipv4_cidr_block  = "172.16.0.0/28"
   }
 
   timeouts {

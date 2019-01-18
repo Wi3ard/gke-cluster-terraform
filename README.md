@@ -16,7 +16,7 @@ Terraform configuration for deploying a Kubernetes cluster in the [Google Kubern
 
 ## Features
 
-- [X] [Private cluster](https://cloud.google.com/kubernetes-engine/docs/how-to/private-clusters) on GKE. **Note** that nodes in a private cluster do not have outbound Internet access because they don't have external IP addresses.
+- [X] Public cluster on GKE.
 - [X] Ability to use [preemptible VM instances](https://cloud.google.com/compute/docs/instances/preemptible) for cluster nodes. **Note** that you need to have at least 3 nodes (throughout all zones) to minimize cluster downtime.
 
 ## TL;TR

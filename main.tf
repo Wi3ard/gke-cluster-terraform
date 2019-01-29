@@ -65,6 +65,10 @@ provider "google" {
   region  = "${var.region}"
 }
 
+provider "kubernetes" {
+  version = "~> 1.5"
+}
+
 /*
  * GCS remote state storage.
  */
@@ -161,5 +165,20 @@ resource "google_container_node_pool" "default_pool" {
     create = "30m"
     update = "30m"
     delete = "30m"
+  }
+}
+
+resource "kubernetes_storage_class" "fast" {
+  depends_on = ["google_container_cluster.default"]
+
+  metadata {
+    name = "fast"
+  }
+
+  storage_provisioner = "kubernetes.io/gce-pd"
+  reclaim_policy      = "Delete"
+
+  parameters {
+    type = "pd-ssd"
   }
 }

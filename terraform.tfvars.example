@@ -2,16 +2,16 @@ cluster_name = "example"
 
 google_project_id = "example-0"
 
+image_type = "cos"
+
 initial_node_count = 2
 
-kubernetes_version = "1.11.6-gke.2"
+kubernetes_version = "latest"
 
 machine_type = "n1-standard-1"
 
-max_node_count = 50
+max_node_count = 20
 
 preemptible = false
-
-region = "us-central-1"
 
 zones = ["us-central1-a", "us-central1-b"]

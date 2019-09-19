@@ -39,7 +39,9 @@ gcloud iam service-accounts keys create ~/key.json --iam-account terraform-sa@$P
 
 gsutil mb -l us-central1 gs://terraform-state-storage/
 
-terraform init -backend-config "bucket=terraform-state-storage" -backend-config "prefix=cluster/example" -backend-config "region=us-central1"
+export GOOGLE_APPLICATION_CREDENTIALS="~/key.json"
+
+terraform init -backend-config "bucket=terraform-state-storage" -backend-config "prefix=cluster/example"
 terraform apply
 
 gcloud container clusters get-credentials $CLUSTER_NAME

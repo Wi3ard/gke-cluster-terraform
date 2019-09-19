@@ -12,15 +12,22 @@ variable "google_project_id" {
   type        = "string"
 }
 
+variable "image_type" {
+  description = "Type of the image to use for instances"
+  default     = "cos"
+  type        = "string"
+}
+
 variable "initial_node_count" {
   description = "Initial number of nodes in a cluster"
   default     = 3
   type        = "string"
 }
 
+# Latest Kubernetes engine version can be found at https://cloud.google.com/kubernetes-engine/docs/release-notes
 variable "kubernetes_version" {
   description = "Kubernetes version"
-  default     = "1.11.6-gke.2"
+  default     = "latest"
   type        = "string"
 }
 
@@ -42,12 +49,6 @@ variable "preemptible" {
   type        = "string"
 }
 
-variable "region" {
-  description = "Region to create resources in"
-  default     = "us-central1"
-  type        = "string"
-}
-
 variable "zones" {
   description = "Zones to create a cluster in"
   default     = ["us-central1-a", "us-central1-b"]
@@ -59,14 +60,13 @@ variable "zones" {
  */
 
 provider "google" {
-  version = "~> 1.20"
+  version = "~> 2.15"
 
   project = "${var.google_project_id}"
-  region  = "${var.region}"
 }
 
 provider "kubernetes" {
-  version = "~> 1.5"
+  version = "~> 1.9"
 }
 
 /*
@@ -83,9 +83,9 @@ terraform {
 
 # GKE cluster.
 resource "google_container_cluster" "default" {
-  name             = "${var.cluster_name}"
-  zone             = "${var.zones[0]}"
-  additional_zones = "${slice(var.zones,1,length(var.zones))}"
+  name           = "${var.cluster_name}"
+  location       = "${var.zones[0]}"
+  node_locations = "${slice(var.zones, 1, length(var.zones))}"
 
   initial_node_count       = 1
   logging_service          = "logging.googleapis.com"
@@ -112,7 +112,7 @@ resource "google_container_cluster" "default" {
   }
 
   lifecycle {
-    ignore_changes = ["node_count"]
+    ignore_changes = ["initial_node_count"]
   }
 
   timeouts {
@@ -126,8 +126,8 @@ resource "google_container_cluster" "default" {
 resource "google_container_node_pool" "default_pool" {
   name               = "default-pool"
   cluster            = "${google_container_cluster.default.name}"
-  zone               = "${var.zones[0]}"
   initial_node_count = 1
+  location           = "${var.zones[0]}"
 
   autoscaling {
     max_node_count = "${var.max_node_count}"
@@ -144,9 +144,9 @@ resource "google_container_node_pool" "default_pool" {
   }
 
   node_config {
-    disk_size_gb = 30
+    disk_size_gb = 50
     disk_type    = "pd-standard"
-    image_type   = "COS"
+    image_type   = "${var.image_type}"
     machine_type = "${var.machine_type}"
     preemptible  = "${var.preemptible}"
 
@@ -178,7 +178,7 @@ resource "kubernetes_storage_class" "fast" {
   storage_provisioner = "kubernetes.io/gce-pd"
   reclaim_policy      = "Delete"
 
-  parameters {
+  parameters = {
     type = "pd-ssd"
   }
 }

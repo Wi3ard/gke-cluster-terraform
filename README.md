@@ -8,6 +8,7 @@
   - [GCS remote state storage for Terraform](#gcs-remote-state-storage-for-terraform)
   - [Terraform initialization](#terraform-initialization)
   - [Apply Terraform plan](#apply-terraform-plan)
+  - [Troubleshooting](#troubleshooting)
   - [Cluster authentication](#cluster-authentication)
   - [Post install](#post-install)
     - [Helm installation](#helm-installation)
@@ -183,6 +184,25 @@ To apply Terraform plan, run:
 ```shell
 terraform apply
 ```
+
+## Troubleshooting
+
+At the time of writing, Kubernetes Terraform provider has a problem of creating new StorageClass resource. There is no way to specify which cluster this resource should go in, and it gets created in the `default` cluster. Therefore you may get the following error message:
+
+```shell
+Error: storageclasses.storage.k8s.io "fast" already exists
+
+  on main.tf line 171, in resource "kubernetes_storage_class" "fast":
+ 171: resource "kubernetes_storage_class" "fast" {
+```
+
+In this case you need to switch to the newly created cluster first:
+
+```shell
+kubectl config use-context $CLUSTER_NAME
+```
+
+and run `terraform apply` again.
 
 ## Cluster authentication
 

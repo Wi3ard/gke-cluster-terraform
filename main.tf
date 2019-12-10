@@ -4,55 +4,55 @@
 
 variable "cluster_name" {
   description = "GKE cluster name"
-  type        = "string"
+  type        = string
 }
 
 variable "google_project_id" {
   description = "GCE project ID"
-  type        = "string"
+  type        = string
 }
 
 variable "image_type" {
   description = "Type of the image to use for instances"
   default     = "cos"
-  type        = "string"
+  type        = string
 }
 
 variable "initial_node_count" {
   description = "Initial number of nodes in a cluster"
   default     = 3
-  type        = "string"
+  type        = string
 }
 
 # Latest Kubernetes engine version can be found at https://cloud.google.com/kubernetes-engine/docs/release-notes
 variable "kubernetes_version" {
   description = "Kubernetes version"
   default     = "latest"
-  type        = "string"
+  type        = string
 }
 
 variable "machine_type" {
   description = "Type of instances to use for a cluster"
   default     = "n1-standard-1"
-  type        = "string"
+  type        = string
 }
 
 variable "max_node_count" {
   description = "Maximum number of nodes in a cluster"
   default     = 50
-  type        = "string"
+  type        = string
 }
 
 variable "preemptible" {
   description = "Whether or not the underlying node VMs are preemptible"
   default     = false
-  type        = "string"
+  type        = string
 }
 
 variable "zones" {
   description = "Zones to create a cluster in"
   default     = ["us-central1-a", "us-central1-b"]
-  type        = "list"
+  type        = list
 }
 
 /*
@@ -60,13 +60,12 @@ variable "zones" {
  */
 
 provider "google" {
-  version = "~> 2.15"
-
-  project = "${var.google_project_id}"
+  version = "~> 3.1"
+  project = var.google_project_id
 }
 
 provider "kubernetes" {
-  version = "~> 1.9"
+  version = "~> 1.10"
 }
 
 /*
@@ -83,15 +82,15 @@ terraform {
 
 # GKE cluster.
 resource "google_container_cluster" "default" {
-  name           = "${var.cluster_name}"
-  location       = "${var.zones[0]}"
-  node_locations = "${slice(var.zones, 1, length(var.zones))}"
+  name           = var.cluster_name
+  location       = var.zones[0]
+  node_locations = slice(var.zones, 1, length(var.zones))
 
   initial_node_count       = 1
   logging_service          = "logging.googleapis.com"
   monitoring_service       = "monitoring.googleapis.com"
   remove_default_node_pool = "true"
-  min_master_version       = "${var.kubernetes_version}"
+  min_master_version       = var.kubernetes_version
 
   addons_config {
     http_load_balancing {
@@ -102,17 +101,13 @@ resource "google_container_cluster" "default" {
       disabled = "false"
     }
 
-    kubernetes_dashboard {
-      disabled = "true"
-    }
-
     network_policy_config {
       disabled = "true"
     }
   }
 
   lifecycle {
-    ignore_changes = ["initial_node_count"]
+    ignore_changes = [initial_node_count]
   }
 
   timeouts {
@@ -125,17 +120,17 @@ resource "google_container_cluster" "default" {
 # Default node pool.
 resource "google_container_node_pool" "default_pool" {
   name               = "default-pool"
-  cluster            = "${google_container_cluster.default.name}"
+  cluster            = google_container_cluster.default.name
   initial_node_count = 1
-  location           = "${var.zones[0]}"
+  location           = var.zones[0]
 
   autoscaling {
-    max_node_count = "${var.max_node_count}"
-    min_node_count = "${var.initial_node_count}"
+    max_node_count = var.max_node_count
+    min_node_count = var.initial_node_count
   }
 
   lifecycle {
-    ignore_changes = ["initial_node_count"]
+    ignore_changes = [initial_node_count]
   }
 
   management {
@@ -146,9 +141,9 @@ resource "google_container_node_pool" "default_pool" {
   node_config {
     disk_size_gb = 50
     disk_type    = "pd-standard"
-    image_type   = "${var.image_type}"
-    machine_type = "${var.machine_type}"
-    preemptible  = "${var.preemptible}"
+    image_type   = var.image_type
+    machine_type = var.machine_type
+    preemptible  = var.preemptible
 
     oauth_scopes = [
       "https://www.googleapis.com/auth/compute",
@@ -169,7 +164,7 @@ resource "google_container_node_pool" "default_pool" {
 }
 
 resource "kubernetes_storage_class" "fast" {
-  depends_on = ["google_container_cluster.default"]
+  depends_on = [google_container_cluster.default]
 
   metadata {
     name = "fast"

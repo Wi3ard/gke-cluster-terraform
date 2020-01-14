@@ -60,7 +60,7 @@ variable "zones" {
  */
 
 provider "google" {
-  version = "~> 3.1"
+  version = "~> 3.4"
   project = var.google_project_id
 }
 
@@ -87,8 +87,8 @@ resource "google_container_cluster" "default" {
   node_locations = slice(var.zones, 1, length(var.zones))
 
   initial_node_count       = 1
-  logging_service          = "logging.googleapis.com"
-  monitoring_service       = "monitoring.googleapis.com"
+  logging_service          = "logging.googleapis.com/kubernetes"
+  monitoring_service       = "monitoring.googleapis.com/kubernetes"
   remove_default_node_pool = "true"
   min_master_version       = var.kubernetes_version
 

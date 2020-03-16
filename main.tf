@@ -60,12 +60,12 @@ variable "zones" {
  */
 
 provider "google" {
-  version = "~> 3.4"
+  version = "~> 3.12"
   project = var.google_project_id
 }
 
 provider "kubernetes" {
-  version = "~> 1.10"
+  version = "~> 1.11"
 }
 
 /*

@@ -33,7 +33,7 @@ variable "kubernetes_version" {
 
 variable "machine_type" {
   description = "Type of instances to use for a cluster"
-  default     = "n1-standard-1"
+  default     = "e2-standard-1"
   type        = string
 }
 
@@ -60,7 +60,7 @@ variable "zones" {
  */
 
 provider "google" {
-  version = "~> 3.12"
+  version = "~> 3.18"
   project = var.google_project_id
 }
 
@@ -160,6 +160,11 @@ resource "google_container_node_pool" "default_pool" {
     create = "30m"
     update = "30m"
     delete = "30m"
+  }
+
+  upgrade_settings {
+    max_surge       = 2
+    max_unavailable = 1
   }
 }
 
